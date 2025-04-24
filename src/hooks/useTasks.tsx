@@ -26,10 +26,13 @@ export function useTasks() {
   });
 
   const createTask = useMutation({
-    mutationFn: async (newTask: Omit<Task, "id" | "created_at" | "user_id">) => {
+    mutationFn: async (newTask: Omit<Task, "id" | "created_at">) => {
+      // Generate a UUID for user_id if not provided
+      const user_id = newTask.user_id || "00000000-0000-0000-0000-000000000000";
+      
       const { data, error } = await supabase
         .from("tasks")
-        .insert([newTask])
+        .insert([{ ...newTask, user_id }])
         .select()
         .single();
 

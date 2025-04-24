@@ -20,7 +20,7 @@ interface TaskFormProps {
   onSuccess?: () => void;
 }
 
-type TaskFormData = Omit<Task, "id" | "created_at" | "user_id">;
+type TaskFormData = Omit<Task, "id" | "created_at">;
 
 export function TaskForm({ task, onSuccess }: TaskFormProps) {
   const { createTask, updateTask } = useTasks();
@@ -38,6 +38,7 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
       end_time: null,
       color: null,
       category: null,
+      user_id: "00000000-0000-0000-0000-000000000000", // Default user ID for anonymous tasks
     },
   });
 
