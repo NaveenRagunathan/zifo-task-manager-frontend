@@ -13,19 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal, MessageSquare, Calendar, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-type TaskStatus = "backlog" | "in-progress" | "validation" | "done";
-type TaskPriority = "urgent" | "high" | "normal" | "low";
-
-interface Task {
-  id: string;
-  title: string;
-  status: TaskStatus;
-  priority: TaskPriority;
-  dueDate: string;
-  comments: number;
-  assignees: string[];
-}
+import { useTasks } from "@/hooks/useTasks";
+import { Task, TaskStatus } from "@/types/task";
 
 const priorityStyles = {
   urgent: "bg-priority-urgent/10 text-priority-urgent",
@@ -41,88 +30,14 @@ const statusStyles = {
   done: "bg-status-done/10 text-status-done border-status-done",
 };
 
-const TASKS: Task[] = [
-  {
-    id: "TASK-1234",
-    title: "Update landing page design",
-    status: "in-progress",
-    priority: "high",
-    dueDate: "2025-04-28",
-    comments: 5,
-    assignees: ["AL", "BM"],
-  },
-  {
-    id: "TASK-1235",
-    title: "Fix authentication bug",
-    status: "backlog",
-    priority: "urgent",
-    dueDate: "2025-04-25",
-    comments: 3,
-    assignees: ["CL"],
-  },
-  {
-    id: "TASK-1236",
-    title: "Create user onboarding flow",
-    status: "validation",
-    priority: "normal",
-    dueDate: "2025-05-02",
-    comments: 8,
-    assignees: ["DK", "EF", "GM"],
-  },
-  {
-    id: "TASK-1237",
-    title: "Improve API response time",
-    status: "done",
-    priority: "high",
-    dueDate: "2025-04-20",
-    comments: 2,
-    assignees: ["AL"],
-  },
-  {
-    id: "TASK-1238",
-    title: "Write API documentation",
-    status: "backlog",
-    priority: "low",
-    dueDate: "2025-05-10",
-    comments: 0,
-    assignees: ["BM", "CL"],
-  },
-  {
-    id: "TASK-1239",
-    title: "Implement dark mode",
-    status: "in-progress",
-    priority: "normal",
-    dueDate: "2025-04-30",
-    comments: 4,
-    assignees: ["DK"],
-  },
-  {
-    id: "TASK-1240",
-    title: "Refactor backend services",
-    status: "backlog",
-    priority: "high",
-    dueDate: "2025-05-15",
-    comments: 7,
-    assignees: ["EF"],
-  },
-  {
-    id: "TASK-1241",
-    title: "Update privacy policy",
-    status: "validation",
-    priority: "urgent",
-    dueDate: "2025-04-26",
-    comments: 1,
-    assignees: ["GM", "AL"],
-  },
-];
-
 const TasksList = () => {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
+  const { tasks, isLoading, error, deleteTask } = useTasks();
   
   const filteredTasks = useMemo(() => {
-    if (statusFilter === "all") return TASKS;
-    return TASKS.filter(task => task.status === statusFilter);
-  }, [statusFilter]);
+    if (statusFilter === "all") return tasks;
+    return tasks.filter(task => task.status === statusFilter);
+  }, [statusFilter, tasks]);
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -132,11 +47,20 @@ const TasksList = () => {
     }).format(date);
   };
   
-  const isOverdue = (dateString: string) => {
+  const isOverdue = (dateString: string | null) => {
+    if (!dateString) return false;
     const today = new Date();
     const dueDate = new Date(dateString);
     return dueDate < today;
   };
+
+  if (isLoading) {
+    return <div className="text-center p-4">Loading tasks...</div>;
+  }
+
+  if (error) {
+    return <div className="text-center text-destructive p-4">Error loading tasks</div>;
+  }
   
   return (
     <div className="rounded-md border">
@@ -208,20 +132,19 @@ const TasksList = () => {
             <TableHead className="w-[100px]">Status</TableHead>
             <TableHead className="w-[100px]">Priority</TableHead>
             <TableHead className="w-[120px]">Due Date</TableHead>
-            <TableHead className="w-[80px] text-center">Comments</TableHead>
-            <TableHead className="w-[120px]">Assignees</TableHead>
+            <TableHead className="w-[120px]">Category</TableHead>
             <TableHead className="w-[50px]"></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredTasks.map((task) => (
             <TableRow key={task.id}>
-              <TableCell className="font-mono text-sm">{task.id}</TableCell>
+              <TableCell className="font-mono text-sm">{task.id.slice(0, 8)}</TableCell>
               <TableCell className="font-medium">{task.title}</TableCell>
               <TableCell>
                 <Badge 
                   variant="outline" 
-                  className={cn("font-normal border-l-4 pl-2", statusStyles[task.status])}
+                  className={cn("font-normal border-l-4 pl-2", statusStyles[task.status as keyof typeof statusStyles])}
                 >
                   {task.status.replace("-", " ")}
                 </Badge>
@@ -239,32 +162,25 @@ const TasksList = () => {
                   <Calendar size={14} className="text-muted-foreground" />
                   <span 
                     className={cn(
-                      isOverdue(task.dueDate) && task.status !== "done" && "text-destructive"
+                      isOverdue(task.end_time) && task.status !== "done" && "text-destructive"
                     )}
                   >
-                    {formatDate(task.dueDate)}
+                    {task.end_time ? formatDate(task.end_time) : "No due date"}
                   </span>
                 </div>
               </TableCell>
-              <TableCell className="text-center">
-                <div className="flex items-center justify-center gap-1">
-                  <MessageSquare size={14} className="text-muted-foreground" />
-                  <span>{task.comments}</span>
-                </div>
-              </TableCell>
+              <TableCell>{task.category || "Uncategorized"}</TableCell>
               <TableCell>
-                <div className="flex -space-x-2">
-                  {task.assignees.map((assignee, index) => (
-                    <Avatar key={index} className="h-7 w-7 border-2 border-background">
-                      <div className="bg-primary text-primary-foreground rounded-full h-full w-full flex items-center justify-center text-xs font-medium">
-                        {assignee}
-                      </div>
-                    </Avatar>
-                  ))}
-                </div>
-              </TableCell>
-              <TableCell>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8"
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to delete this task?")) {
+                      deleteTask.mutate(task.id);
+                    }
+                  }}
+                >
                   <MoreHorizontal size={16} />
                 </Button>
               </TableCell>
