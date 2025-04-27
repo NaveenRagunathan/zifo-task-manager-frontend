@@ -1,51 +1,98 @@
-
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface TaskStatus {
-  name: string;
-  count: number;
-  color: string;
-}
-
-const statuses: TaskStatus[] = [
-  { name: "Backlog", count: 24, color: "bg-status-backlog" },
-  { name: "In Progress", count: 4, color: "bg-status-progress" },
-  { name: "Validation", count: 7, color: "bg-status-validation" },
-  { name: "Done", count: 13, color: "bg-status-done" },
-];
+import { Card, CardContent, CardTitle } from "@/components/ui/card";
+import { useTaskStats } from "@/hooks/useTaskStats";
 
 const TaskProgressBar = () => {
-  const total = statuses.reduce((acc, status) => acc + status.count, 0);
+  const { taskStats, isLoading, error } = useTaskStats();
   
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <CardTitle className="text-base font-medium">Task Distribution</CardTitle>
+          <div className="mt-4">Loading task distribution data...</div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <CardTitle className="text-base font-medium">Task Distribution</CardTitle>
+          <div className="mt-4 text-destructive">Error loading task distribution</div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  // Calculate total
+  const total = taskStats.total || 1; // Prevent division by zero
+  
+  // Calculate percentages
+  const percentages = {
+    backlog: Math.round((taskStats.backlog / total) * 100),
+    inProgress: Math.round((taskStats["in-progress"] / total) * 100),
+    validation: Math.round((taskStats.validation / total) * 100),
+    done: Math.round((taskStats.done / total) * 100),
+  };
+
   return (
     <Card>
-      <CardHeader className="pb-3">
+      <CardContent className="pt-6">
         <CardTitle className="text-base font-medium">Task Distribution</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted mb-5">
-          {statuses.map((status) => {
-            const width = (status.count / total) * 100;
-            return (
-              <div
-                key={status.name}
-                className={`${status.color}`}
-                style={{ width: `${width}%` }}
-              />
-            );
-          })}
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-          {statuses.map((status) => (
-            <div key={status.name} className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <div className={`h-3 w-3 rounded-full ${status.color}`} />
-                <span className="text-sm font-medium">{status.name}</span>
-              </div>
-              <div className="mt-1 text-xl font-semibold">{status.count}</div>
+        <div className="mt-4">
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <div>Backlog</div>
+              <div>{percentages.backlog}%</div>
             </div>
-          ))}
+            <div className="h-2 w-full rounded-full bg-secondary">
+              <div 
+                className="h-full rounded-full bg-status-backlog" 
+                style={{ width: `${percentages.backlog}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          <div className="mt-3 space-y-2">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <div>In Progress</div>
+              <div>{percentages.inProgress}%</div>
+            </div>
+            <div className="h-2 w-full rounded-full bg-secondary">
+              <div 
+                className="h-full rounded-full bg-status-progress" 
+                style={{ width: `${percentages.inProgress}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          <div className="mt-3 space-y-2">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <div>Validation</div>
+              <div>{percentages.validation}%</div>
+            </div>
+            <div className="h-2 w-full rounded-full bg-secondary">
+              <div 
+                className="h-full rounded-full bg-status-validation" 
+                style={{ width: `${percentages.validation}%` }}
+              ></div>
+            </div>
+          </div>
+          
+          <div className="mt-3 space-y-2">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <div>Done</div>
+              <div>{percentages.done}%</div>
+            </div>
+            <div className="h-2 w-full rounded-full bg-secondary">
+              <div 
+                className="h-full rounded-full bg-status-done" 
+                style={{ width: `${percentages.done}%` }}
+              ></div>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

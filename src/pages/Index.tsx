@@ -1,34 +1,26 @@
-
-import { 
-  Layers, 
-  MessageSquare, 
-  Calendar, 
-  Users,
-  Plus
-} from "lucide-react";
-import { useState } from "react";
-import Sidebar from "@/components/layout/Sidebar";
-import Header from "@/components/layout/Header";
-import TaskStatCard from "@/components/dashboard/TaskStatCard";
-import TaskProgressBar from "@/components/dashboard/TaskProgressBar";
-import ProgressChart from "@/components/dashboard/ProgressChart";
-import TasksList from "@/components/tasks/TasksList";
 import MetricCard from "@/components/dashboard/MetricCard";
+import ProgressChart from "@/components/dashboard/ProgressChart";
+import TaskProgressBar from "@/components/dashboard/TaskProgressBar";
+import TaskStatCard from "@/components/dashboard/TaskStatCard";
+import Header from "@/components/layout/Header";
+import Sidebar from "@/components/layout/Sidebar";
+import { TaskForm } from "@/components/tasks/TaskForm";
+import TasksList from "@/components/tasks/TasksList";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { TaskForm } from "@/components/tasks/TaskForm";
 import { useTasks } from "@/hooks/useTasks";
+import { useTaskStats } from "@/hooks/useTaskStats";
+import {
+    Layers,
+    MessageSquare,
+    Plus
+} from "lucide-react";
+import { useState } from "react";
 
 const Index = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { tasks } = useTasks();
-
-  const taskStats = {
-    backlog: tasks.filter(t => t.status === "backlog").length,
-    inProgress: tasks.filter(t => t.status === "in-progress").length,
-    validation: tasks.filter(t => t.status === "validation").length,
-    done: tasks.filter(t => t.status === "done").length,
-  };
+  const { taskStats, isLoading: statsLoading } = useTaskStats();
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -57,22 +49,22 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <TaskStatCard 
               title="Backlog" 
-              count={taskStats.backlog} 
+              count={statsLoading ? 0 : taskStats.backlog}
               type="backlog" 
             />
             <TaskStatCard 
               title="In Progress" 
-              count={taskStats.inProgress} 
+              count={statsLoading ? 0 : taskStats["in-progress"]}
               type="progress" 
             />
             <TaskStatCard 
               title="Validation" 
-              count={taskStats.validation} 
+              count={statsLoading ? 0 : taskStats.validation}
               type="validation" 
             />
             <TaskStatCard 
               title="Completed" 
-              count={taskStats.done} 
+              count={statsLoading ? 0 : taskStats.done}
               type="done" 
             />
           </div>
@@ -84,7 +76,7 @@ const Index = () => {
             <div>
               <MetricCard 
                 title="Total Tasks" 
-                value={tasks.length} 
+                value={statsLoading ? 0 : taskStats.total}
                 icon={<Layers size={18} />} 
               />
               <div className="h-4" />

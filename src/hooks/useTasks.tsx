@@ -1,8 +1,119 @@
-
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Task } from "@/types/task";
 import { useToast } from "@/hooks/use-toast";
+import { Task } from "@/types/task";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
+// API Functions for task operations
+const fetchTasks = async (): Promise<Task[]> => {
+  try {
+    const response = await fetch('/api/tasks');
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = 'Error fetching tasks';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorMessage;
+      } catch (e) {
+        // If parsing fails, use the text as is
+        if (errorText) errorMessage = errorText;
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const result = await response.json();
+    return result.data || [];
+  } catch (error) {
+    console.error('Fetch tasks error:', error);
+    throw error;
+  }
+};
+
+const createTaskApi = async (task: Omit<Task, "id" | "created_at">): Promise<Task> => {
+  try {
+    console.log("Creating task with data:", task);
+    const response = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(task),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = 'Error creating task';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorMessage;
+      } catch (e) {
+        // If parsing fails, use the text as is
+        if (errorText) errorMessage = errorText;
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Create task error:', error);
+    throw error;
+  }
+};
+
+const updateTaskApi = async ({ id, ...task }: Partial<Task> & { id: string }): Promise<Task> => {
+  try {
+    const response = await fetch(`/api/tasks/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(task),
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = 'Error updating task';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorMessage;
+      } catch (e) {
+        // If parsing fails, use the text as is
+        if (errorText) errorMessage = errorText;
+      }
+      throw new Error(errorMessage);
+    }
+    
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Update task error:', error);
+    throw error;
+  }
+};
+
+const deleteTaskApi = async (id: string): Promise<void> => {
+  try {
+    const response = await fetch(`/api/tasks/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = 'Error deleting task';
+      try {
+        const errorJson = JSON.parse(errorText);
+        errorMessage = errorJson.message || errorMessage;
+      } catch (e) {
+        // If parsing fails, use the text as is
+        if (errorText) errorMessage = errorText;
+      }
+      throw new Error(errorMessage);
+    }
+  } catch (error) {
+    console.error('Delete task error:', error);
+    throw error;
+  }
+};
 
 export function useTasks() {
   const queryClient = useQueryClient();
@@ -14,31 +125,11 @@ export function useTasks() {
     error,
   } = useQuery({
     queryKey: ["tasks"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("tasks")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as Task[];
-    },
+    queryFn: fetchTasks,
   });
 
   const createTask = useMutation({
-    mutationFn: async (newTask: Omit<Task, "id" | "created_at">) => {
-      // Generate a UUID for user_id if not provided
-      const user_id = newTask.user_id || "00000000-0000-0000-0000-000000000000";
-      
-      const { data, error } = await supabase
-        .from("tasks")
-        .insert([{ ...newTask, user_id }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: createTaskApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({
@@ -46,28 +137,18 @@ export function useTasks() {
         description: "Task created successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to create task",
+        description: error.message || "Failed to create task",
       });
       console.error("Error creating task:", error);
     },
   });
 
   const updateTask = useMutation({
-    mutationFn: async ({ id, ...task }: Partial<Task> & { id: string }) => {
-      const { data, error } = await supabase
-        .from("tasks")
-        .update(task)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    },
+    mutationFn: updateTaskApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({
@@ -75,21 +156,18 @@ export function useTasks() {
         description: "Task updated successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to update task",
+        description: error.message || "Failed to update task",
       });
       console.error("Error updating task:", error);
     },
   });
 
   const deleteTask = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase.from("tasks").delete().eq("id", id);
-      if (error) throw error;
-    },
+    mutationFn: deleteTaskApi,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
       toast({
@@ -97,11 +175,11 @@ export function useTasks() {
         description: "Task deleted successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: Error) => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to delete task",
+        description: error.message || "Failed to delete task",
       });
       console.error("Error deleting task:", error);
     },

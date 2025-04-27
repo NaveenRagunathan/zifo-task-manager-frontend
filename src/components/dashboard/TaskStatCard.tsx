@@ -1,12 +1,12 @@
-
-import { Card, CardContent } from "@/components/ui/card";
+import {
+    Card,
+    CardContent,
+    CardHeader,
+    CardTitle
+} from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { 
-  Clock, 
-  Hourglass, 
-  CheckCircle, 
-  AlertCircle 
-} from "lucide-react";
+import { ArrowDown, ArrowUp } from "lucide-react";
+import { useMemo } from "react";
 
 interface TaskStatCardProps {
   title: string;
@@ -18,46 +18,65 @@ interface TaskStatCardProps {
   };
 }
 
-const icons = {
-  backlog: Hourglass,
-  progress: Clock,
-  validation: AlertCircle,
-  done: CheckCircle,
-};
-
-const colors = {
-  backlog: "bg-status-backlog/10 text-status-backlog",
-  progress: "bg-status-progress/10 text-status-progress",
-  validation: "bg-status-validation/10 text-status-validation", 
-  done: "bg-status-done/10 text-status-done",
-};
-
 const TaskStatCard = ({ title, count, type, percentage }: TaskStatCardProps) => {
-  const Icon = icons[type];
-  
+  const typeStyles = useMemo(() => {
+    switch (type) {
+      case "backlog":
+        return "bg-status-backlog/10 text-status-backlog";
+      case "progress":
+        return "bg-status-progress/10 text-status-progress";
+      case "validation":
+        return "bg-status-validation/10 text-status-validation";
+      case "done":
+        return "bg-status-done/10 text-status-done";
+    }
+  }, [type]);
+
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex items-center justify-between">
-          <div className={cn("p-2 rounded-md", colors[type])}>
-            <Icon size={18} />
-          </div>
-          
-          {percentage && (
-            <div className={cn(
-              "text-xs font-medium px-2 py-1 rounded-full",
-              percentage.increase 
-                ? "bg-status-done/10 text-status-done" 
-                : "bg-status-backlog/10 text-status-backlog"
-            )}>
-              {percentage.increase ? "+" : "-"}{percentage.value}%
+    <Card className="overflow-hidden">
+      <CardHeader className="p-5 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      </CardHeader>
+      <CardContent className="p-5 pt-2">
+        <div className="flex items-end justify-between">
+          <div className="space-y-2">
+            <div className={cn("text-3xl font-bold", typeStyles)}>
+              {count}
             </div>
-          )}
-        </div>
-        
-        <div className="mt-3">
-          <h3 className="text-2xl font-semibold">{count}</h3>
-          <p className="text-sm text-muted-foreground">{title}</p>
+            {percentage && (
+              <div className="flex items-center text-xs font-medium">
+                {percentage.increase ? (
+                  <>
+                    <ArrowUp className="mr-1 h-3 w-3 text-emerald-500" />
+                    <span className="text-emerald-500">
+                      {percentage.value}%
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <ArrowDown className="mr-1 h-3 w-3 text-rose-500" />
+                    <span className="text-rose-500">
+                      {percentage.value}%
+                    </span>
+                  </>
+                )}
+                <span className="ml-1 text-muted-foreground">
+                  from last month
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="hidden h-16 w-16 items-center justify-center rounded-full bg-secondary md:flex">
+            <div 
+              className={cn(
+                "h-7 w-7 rounded-full",
+                type === "backlog" && "bg-status-backlog",
+                type === "progress" && "bg-status-progress",
+                type === "validation" && "bg-status-validation",
+                type === "done" && "bg-status-done"
+              )}
+            />
+          </div>
         </div>
       </CardContent>
     </Card>

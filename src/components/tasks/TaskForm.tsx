@@ -1,19 +1,18 @@
-
-import { useState } from "react";
-import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import {
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Task } from "@/types/task";
 import { useTasks } from "@/hooks/useTasks";
+import { Task } from "@/types/task";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 interface TaskFormProps {
   task?: Task;
@@ -144,7 +143,8 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
                 <Input 
                   type="number" 
                   {...field} 
-                  onChange={e => field.onChange(parseInt(e.target.value))}
+                  value={field.value === null || isNaN(field.value) ? '' : field.value}
+                  onChange={e => field.onChange(e.target.value === '' ? null : parseInt(e.target.value))}
                   disabled={isSubmitting} 
                 />
               </FormControl>
