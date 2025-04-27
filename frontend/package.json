@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://naveenragunathan.github.io/relatedlab-insight-report",
+  "homepage": "https://naveenragunathan.github.io/zifo-task-manager",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
