@@ -1,10 +1,10 @@
-# RelatedLab Insight Report
+# zifo-task-manager
 
 A task management and analytics dashboard built with React, Node.js, and MongoDB.
 
 ## Live Demo
-- Frontend: https://naveenragunathan.github.io/relatedlab-insight-report
-- Backend: https://relatedlab-insight-report.onrender.com
+- Frontend: https://naveenragunathan.github.io/zifo-task-manager
+- Backend: https://zifo-task-manager.onrender.com
 
 ## Features
 - Task management with status tracking
@@ -38,7 +38,8 @@ A task management and analytics dashboard built with React, Node.js, and MongoDB
 2. Update your repository settings:
    - Go to your GitHub repository
    - Navigate to Settings > Pages
-   - Set source to "GitHub Actions"
+   - Set source to "Deploy from a branch"
+   - Select branch: gh-pages / (root)
 
 3. Deploy:
    ```bash
@@ -55,15 +56,15 @@ A task management and analytics dashboard built with React, Node.js, and MongoDB
    - Environment Variables:
      - `PORT`: 3000
      - `MONGODB_URI`: Your MongoDB connection string
-     - `CORS_ORIGIN`: https://naveenragunathan.github.io
+     - `CORS_ORIGIN`: https://naveenragunathan.github.io/zifo-task-manager
 
 4. Deploy the service
 
 ## Local Development
 1. Clone the repository:
    ```bash
-   git clone https://github.com/NaveenRagunathan/relatedlab-insight-report.git
-   cd relatedlab-insight-report
+   git clone https://github.com/NaveenRagunathan/zifo-task-manager.git
+   cd zifo-task-manager
    ```
 
 2. Install dependencies:
