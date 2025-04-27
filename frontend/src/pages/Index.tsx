@@ -5,13 +5,11 @@ import TasksList from "@/components/tasks/TasksList";
 import { Button } from "@/components/ui/button";
 import { useTasks } from "@/hooks/useTasks";
 import { useTaskStats } from "@/hooks/useTaskStats";
-import { useState } from "react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const { tasks, isLoading } = useTasks();
-  const { taskStats, isLoading: statsLoading } = useTaskStats();
+  const { taskStats } = useTaskStats();
 
   if (isLoading) {
     return <div>Loading...</div>;

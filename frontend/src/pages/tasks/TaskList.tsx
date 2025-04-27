@@ -1,30 +1,27 @@
 import TasksList from "@/components/tasks/TasksList";
 import { useTasks } from "@/hooks/useTasks";
+import { TaskStatus } from "@/types/task";
 import { useParams } from "react-router-dom";
 
 const TaskList = () => {
-  const { status } = useParams();
+  const { status } = useParams<{ status: TaskStatus }>();
   const { tasks, isLoading } = useTasks();
 
-  const filteredTasks = tasks?.filter(task => 
-    status === "in-progress" ? task.status === "in-progress" :
-    status === "done" ? task.status === "done" :
-    task.status === "not-started"
-  ) || [];
-
   if (isLoading) {
-    return <div>Loading tasks...</div>;
+    return <div>Loading...</div>;
   }
 
-  const statusTitle = status?.split("-").map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(" ") || "Not Started";
+  const filteredTasks = tasks?.filter(task => 
+    status ? task.status === status : true
+  ) || [];
 
   return (
-    <>
-      <h1 className="text-2xl font-bold mb-6">{statusTitle} Tasks</h1>
-      <TasksList tasks={filteredTasks} showFilters={false} />
-    </>
+    <div className="p-6">
+      <h1 className="text-2xl font-bold mb-6">
+        {status ? `${status.charAt(0).toUpperCase() + status.slice(1)} Tasks` : 'All Tasks'}
+      </h1>
+      <TasksList tasks={filteredTasks} />
+    </div>
   );
 };
 

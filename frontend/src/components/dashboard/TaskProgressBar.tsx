@@ -1,7 +1,63 @@
 import { Card, CardContent, CardTitle } from "@/components/ui/card";
 import { useTaskStats } from "@/hooks/useTaskStats";
+import { TaskStats } from "@/types/task";
 
-const TaskProgressBar = () => {
+interface TaskProgressBarProps {
+  taskStats: TaskStats;
+}
+
+export const TaskProgressBar = ({ taskStats }: TaskProgressBarProps) => {
+  const total = taskStats.total || 1;
+
+  const percentages = {
+    'not-started': Math.round((taskStats['not-started'] / total) * 100),
+    'in-progress': Math.round((taskStats['in-progress'] / total) * 100),
+    'completed': Math.round((taskStats.completed / total) * 100),
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <div className="flex justify-between mb-1">
+          <span>Not Started</span>
+          <span>{percentages['not-started']}%</span>
+        </div>
+        <div className="h-2 bg-[#7C3AED]/10 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-[#7C3AED]" 
+            style={{ width: `${percentages['not-started']}%` }}
+          />
+        </div>
+      </div>
+      <div>
+        <div className="flex justify-between mb-1">
+          <span>In Progress</span>
+          <span>{percentages['in-progress']}%</span>
+        </div>
+        <div className="h-2 bg-[#3B82F6]/10 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-[#3B82F6]" 
+            style={{ width: `${percentages['in-progress']}%` }}
+          />
+        </div>
+      </div>
+      <div>
+        <div className="flex justify-between mb-1">
+          <span>Completed</span>
+          <span>{percentages.completed}%</span>
+        </div>
+        <div className="h-2 bg-[#10B981]/10 rounded-full overflow-hidden">
+          <div 
+            className="h-full bg-[#10B981]" 
+            style={{ width: `${percentages.completed}%` }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TaskProgressBarContainer = () => {
   const { taskStats, isLoading, error } = useTaskStats();
   
   if (isLoading) {
@@ -26,77 +82,16 @@ const TaskProgressBar = () => {
     );
   }
   
-  // Calculate total
-  const total = taskStats.total || 1; // Prevent division by zero
-  
-  // Calculate percentages
-  const percentages = {
-    backlog: Math.round((taskStats.backlog / total) * 100),
-    inProgress: Math.round((taskStats["in-progress"] / total) * 100),
-    validation: Math.round((taskStats.validation / total) * 100),
-    done: Math.round((taskStats.done / total) * 100),
-  };
-
   return (
     <Card>
       <CardContent className="pt-6">
         <CardTitle className="text-base font-medium">Task Distribution</CardTitle>
         <div className="mt-4">
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <div>Backlog</div>
-              <div>{percentages.backlog}%</div>
-            </div>
-            <div className="h-2 w-full rounded-full bg-secondary">
-              <div 
-                className="h-full rounded-full bg-status-backlog" 
-                style={{ width: `${percentages.backlog}%` }}
-              ></div>
-            </div>
-          </div>
-          
-          <div className="mt-3 space-y-2">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <div>In Progress</div>
-              <div>{percentages.inProgress}%</div>
-            </div>
-            <div className="h-2 w-full rounded-full bg-secondary">
-              <div 
-                className="h-full rounded-full bg-status-progress" 
-                style={{ width: `${percentages.inProgress}%` }}
-              ></div>
-            </div>
-          </div>
-          
-          <div className="mt-3 space-y-2">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <div>Validation</div>
-              <div>{percentages.validation}%</div>
-            </div>
-            <div className="h-2 w-full rounded-full bg-secondary">
-              <div 
-                className="h-full rounded-full bg-status-validation" 
-                style={{ width: `${percentages.validation}%` }}
-              ></div>
-            </div>
-          </div>
-          
-          <div className="mt-3 space-y-2">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <div>Done</div>
-              <div>{percentages.done}%</div>
-            </div>
-            <div className="h-2 w-full rounded-full bg-secondary">
-              <div 
-                className="h-full rounded-full bg-status-done" 
-                style={{ width: `${percentages.done}%` }}
-              ></div>
-            </div>
-          </div>
+          <TaskProgressBar taskStats={taskStats} />
         </div>
       </CardContent>
     </Card>
   );
 };
 
-export default TaskProgressBar;
+export default TaskProgressBarContainer;

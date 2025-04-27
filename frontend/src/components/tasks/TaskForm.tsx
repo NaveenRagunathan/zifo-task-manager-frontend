@@ -4,32 +4,46 @@ import {
     FormControl,
     FormField,
     FormItem,
-    FormLabel,
-    FormMessage,
+    FormLabel
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useTasks } from "@/hooks/useTasks";
-import { Task } from "@/types/task";
-import { useState } from "react";
+import { Task, TaskFormData } from "@/types/task";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import * as z from "zod";
+
+const taskSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string().nullable(),
+  status: z.enum(["not-started", "in-progress", "completed"]),
+  priority: z.enum(["urgent", "high", "normal", "low"]),
+  estimated_minutes: z.number().min(1, "Estimated minutes must be at least 1"),
+  actual_minutes: z.number().nullable(),
+  start_time: z.string().nullable(),
+  end_time: z.string().nullable(),
+  color: z.string().nullable(),
+  category: z.string().nullable(),
+  user_id: z.string()
+});
 
 interface TaskFormProps {
   task?: Task;
   onSuccess?: () => void;
 }
 
-type TaskFormData = Omit<Task, "id" | "created_at">;
-
-export function TaskForm({ task, onSuccess }: TaskFormProps) {
+export const TaskForm = ({ task, onSuccess }: TaskFormProps) => {
   const { createTask, updateTask } = useTasks();
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<TaskFormData>({
+    resolver: zodResolver(taskSchema),
     defaultValues: task || {
       title: "",
-      description: "",
-      status: "backlog",
+      description: null,
+      status: "not-started",
       priority: "normal",
       estimated_minutes: 30,
       actual_minutes: null,
@@ -37,22 +51,25 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
       end_time: null,
       color: null,
       category: null,
-      user_id: "00000000-0000-0000-0000-000000000000", // Default user ID for anonymous tasks
-    },
+      user_id: "00000000-0000-0000-0000-000000000000"
+    }
   });
 
+  const { isSubmitting } = form.formState;
+
   const onSubmit = async (data: TaskFormData) => {
-    setIsSubmitting(true);
     try {
       if (task) {
         await updateTask.mutateAsync({ id: task.id, ...data });
+        toast.success("Task updated successfully");
       } else {
         await createTask.mutateAsync(data);
+        toast.success("Task created successfully");
       }
-      form.reset();
       onSuccess?.();
-    } finally {
-      setIsSubmitting(false);
+      form.reset();
+    } catch (error) {
+      toast.error("Failed to save task");
     }
   };
 
@@ -68,7 +85,6 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
               <FormControl>
                 <Input {...field} disabled={isSubmitting} />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -80,9 +96,8 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea {...field} disabled={isSubmitting} />
+                <Textarea {...field} disabled={isSubmitting} value={field.value || ""} />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -93,19 +108,24 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Priority</FormLabel>
-              <FormControl>
-                <select
-                  {...field}
-                  disabled={isSubmitting}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="low">Low</option>
-                  <option value="normal">Normal</option>
-                  <option value="high">High</option>
-                  <option value="urgent">Urgent</option>
-                </select>
-              </FormControl>
-              <FormMessage />
+              <Select
+                disabled={isSubmitting}
+                onValueChange={field.onChange}
+                value={field.value}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                </SelectContent>
+              </Select>
             </FormItem>
           )}
         />
@@ -116,19 +136,23 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Status</FormLabel>
-              <FormControl>
-                <select
-                  {...field}
-                  disabled={isSubmitting}
-                  className="w-full p-2 border rounded"
-                >
-                  <option value="backlog">Backlog</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="validation">Validation</option>
-                  <option value="done">Done</option>
-                </select>
-              </FormControl>
-              <FormMessage />
+              <Select
+                disabled={isSubmitting}
+                onValueChange={field.onChange}
+                value={field.value}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="not-started">Not Started</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
             </FormItem>
           )}
         />
@@ -140,15 +164,13 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
             <FormItem>
               <FormLabel>Estimated Minutes</FormLabel>
               <FormControl>
-                <Input 
-                  type="number" 
-                  {...field} 
-                  value={field.value === null || isNaN(field.value) ? '' : field.value}
-                  onChange={e => field.onChange(e.target.value === '' ? null : parseInt(e.target.value))}
-                  disabled={isSubmitting} 
+                <Input
+                  type="number"
+                  {...field}
+                  onChange={(e) => field.onChange(parseInt(e.target.value))}
+                  disabled={isSubmitting}
                 />
               </FormControl>
-              <FormMessage />
             </FormItem>
           )}
         />
@@ -159,4 +181,4 @@ export function TaskForm({ task, onSuccess }: TaskFormProps) {
       </form>
     </Form>
   );
-}
+};

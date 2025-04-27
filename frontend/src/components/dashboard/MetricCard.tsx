@@ -1,6 +1,4 @@
-
 import { Card, CardContent } from "@/components/ui/card";
-import { MessageSquare } from "lucide-react";
 
 interface MetricCardProps {
   title: string;

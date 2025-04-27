@@ -16,3 +16,24 @@ export interface Task {
   category: string | null;
   user_id: string;
 }
+
+export interface TaskStats {
+  'not-started': number;
+  'in-progress': number;
+  'completed': number;
+  total: number;
+}
+
+export interface TaskFormData {
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  estimated_minutes: number;
+  actual_minutes: number | null;
+  start_time: string | null;
+  end_time: string | null;
+  color: string | null;
+  category: string | null;
+  user_id: string;
+}
