@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -67,10 +66,9 @@ export default {
 					ring: 'hsl(var(--sidebar-ring))'
 				},
 				status: {
-					backlog: '#6366f1',
-					progress: '#0ea5e9',
-					validation: '#f59e0b',
-					done: '#10b981',
+					'not-started': 'hsl(var(--status-not-started))',
+					progress: 'hsl(var(--status-progress))',
+					completed: 'hsl(var(--status-completed))',
 				},
 				priority: {
 					urgent: '#ef4444',

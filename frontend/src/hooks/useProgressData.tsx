@@ -1,12 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 
-export interface ChartDataPoint {
+interface ProgressData {
   name: string;
-  tasks: number;
+  hours: number;
 }
 
-// Fetch progress chart data
-const fetchProgressChartData = async (): Promise<ChartDataPoint[]> => {
+const fetchProgressChartData = async (): Promise<ProgressData[]> => {
   try {
     const response = await fetch('/api/tasks/progress-chart');
     
@@ -23,25 +22,29 @@ const fetchProgressChartData = async (): Promise<ChartDataPoint[]> => {
     }
     
     const result = await response.json();
-    return result.data;
+    // Transform the data to use hours
+    return result.data.map((week: any) => ({
+      name: week.name,
+      hours: Math.round(week.tasks * 1.5) // Temporary: converting mock task data to hours
+    }));
   } catch (error) {
-    console.error('Fetch progress chart error:', error);
+    console.error('Error fetching progress chart data:', error);
     throw error;
   }
 };
 
 export function useProgressData() {
   const {
-    data: progressData = [],
+    data = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["progressChartData"],
+    queryKey: ["progressChart"],
     queryFn: fetchProgressChartData,
   });
 
   return {
-    progressData,
+    progressData: data,
     isLoading,
     error,
   };

@@ -1,73 +1,99 @@
-# Welcome to your Lovable project
+# RelatedLab Insight Report
 
-## Project info
+A task management and analytics dashboard built with React, Node.js, and MongoDB.
 
-**URL**: https://lovable.dev/projects/f8b0264a-b2eb-43bf-a39c-e6d2f1aef3c2
+## Live Demo
+- Frontend: https://naveenragunathan.github.io/relatedlab-insight-report
+- Backend: https://relatedlab-insight-report.onrender.com
 
-## How can I edit this code?
+## Features
+- Task management with status tracking
+- Progress visualization with interactive charts
+- Weekly hours tracking
+- Task distribution analytics
+- Priority-based task organization
 
-There are several ways of editing your application.
+## Tech Stack
+- Frontend:
+  - React with TypeScript
+  - Vite
+  - TailwindCSS
+  - Recharts for data visualization
+  - React Query for state management
+- Backend:
+  - Node.js with Express
+  - TypeScript
+  - MongoDB with Mongoose
+  - RESTful API architecture
 
-**Use Lovable**
+## Deployment Instructions
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f8b0264a-b2eb-43bf-a39c-e6d2f1aef3c2) and start prompting.
+### Frontend Deployment (GitHub Pages)
+1. Install gh-pages:
+   ```bash
+   cd frontend
+   npm install gh-pages --save-dev
+   ```
 
-Changes made via Lovable will be committed automatically to this repo.
+2. Update your repository settings:
+   - Go to your GitHub repository
+   - Navigate to Settings > Pages
+   - Set source to "GitHub Actions"
 
-**Use your preferred IDE**
+3. Deploy:
+   ```bash
+   cd frontend
+   npm run deploy
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Backend Deployment (Render)
+1. Create a new Web Service on Render
+2. Connect your GitHub repository
+3. Configure the service:
+   - Build Command: `npm install`
+   - Start Command: `npm start`
+   - Environment Variables:
+     - `PORT`: 3000
+     - `MONGODB_URI`: Your MongoDB connection string
+     - `CORS_ORIGIN`: https://naveenragunathan.github.io
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+4. Deploy the service
 
-Follow these steps:
+## Local Development
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/NaveenRagunathan/relatedlab-insight-report.git
+   cd relatedlab-insight-report
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+2. Install dependencies:
+   ```bash
+   # Install frontend dependencies
+   cd frontend
+   npm install
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+   # Install backend dependencies
+   cd ../backend
+   npm install
+   ```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Set up environment variables:
+   - Create `.env` files in both frontend and backend directories
+   - Use the example files as templates
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+4. Start the development servers:
+   ```bash
+   # Start backend server
+   cd backend
+   npm run dev
 
-**Edit a file directly in GitHub**
+   # Start frontend server
+   cd frontend
+   npm run dev
+   ```
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/f8b0264a-b2eb-43bf-a39c-e6d2f1aef3c2) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## License
+[MIT](https://choosealicense.com/licenses/mit/)

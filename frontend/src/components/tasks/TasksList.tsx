@@ -1,20 +1,18 @@
-
-import { useMemo, useState } from "react";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, MessageSquare, Calendar, ChevronDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow
+} from "@/components/ui/table";
 import { useTasks } from "@/hooks/useTasks";
+import { cn } from "@/lib/utils";
 import { Task, TaskStatus } from "@/types/task";
+import { Calendar, MoreHorizontal } from "lucide-react";
+import { useMemo, useState } from "react";
 
 const priorityStyles = {
   urgent: "bg-priority-urgent/10 text-priority-urgent",
@@ -24,20 +22,24 @@ const priorityStyles = {
 };
 
 const statusStyles = {
-  backlog: "bg-status-backlog/10 text-status-backlog border-status-backlog",
+  "not-started": "bg-status-not-started/10 text-status-not-started border-status-not-started",
   "in-progress": "bg-status-progress/10 text-status-progress border-status-progress",
-  validation: "bg-status-validation/10 text-status-validation border-status-validation",
-  done: "bg-status-done/10 text-status-done border-status-done",
+  "completed": "bg-status-completed/10 text-status-completed border-status-completed",
 };
 
-const TasksList = () => {
+interface TasksListProps {
+  tasks: Task[];
+  showFilters?: boolean;
+}
+
+const TasksList = ({ tasks: initialTasks, showFilters = true }: TasksListProps) => {
   const [statusFilter, setStatusFilter] = useState<TaskStatus | "all">("all");
-  const { tasks, isLoading, error, deleteTask } = useTasks();
+  const { deleteTask } = useTasks();
   
   const filteredTasks = useMemo(() => {
-    if (statusFilter === "all") return tasks;
-    return tasks.filter(task => task.status === statusFilter);
-  }, [statusFilter, tasks]);
+    if (statusFilter === "all") return initialTasks;
+    return initialTasks.filter(task => task.status === statusFilter);
+  }, [statusFilter, initialTasks]);
   
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -54,76 +56,67 @@ const TasksList = () => {
     return dueDate < today;
   };
 
-  if (isLoading) {
-    return <div className="text-center p-4">Loading tasks...</div>;
-  }
-
-  if (error) {
-    return <div className="text-center text-destructive p-4">Error loading tasks</div>;
+  if (filteredTasks.length === 0) {
+    return (
+      <div className="rounded-md border p-8 text-center">
+        <p className="text-muted-foreground">No tasks found</p>
+      </div>
+    );
   }
   
   return (
     <div className="rounded-md border">
-      <div className="p-4 border-b flex justify-between items-center">
-        <div className="font-semibold">Tasks</div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline" 
-            size="sm" 
-            onClick={() => setStatusFilter("all")}
-            className={cn(
-              "text-sm",
-              statusFilter === "all" && "bg-secondary"
-            )}
-          >
-            All
-          </Button>
-          <Button
-            variant="outline" 
-            size="sm" 
-            onClick={() => setStatusFilter("backlog")}
-            className={cn(
-              "text-sm",
-              statusFilter === "backlog" && "bg-secondary"
-            )}
-          >
-            Backlog
-          </Button>
-          <Button
-            variant="outline" 
-            size="sm" 
-            onClick={() => setStatusFilter("in-progress")}
-            className={cn(
-              "text-sm",
-              statusFilter === "in-progress" && "bg-secondary"
-            )}
-          >
-            In Progress
-          </Button>
-          <Button
-            variant="outline" 
-            size="sm" 
-            onClick={() => setStatusFilter("validation")}
-            className={cn(
-              "text-sm",
-              statusFilter === "validation" && "bg-secondary"
-            )}
-          >
-            Validation
-          </Button>
-          <Button
-            variant="outline" 
-            size="sm" 
-            onClick={() => setStatusFilter("done")}
-            className={cn(
-              "text-sm",
-              statusFilter === "done" && "bg-secondary"
-            )}
-          >
-            Done
-          </Button>
+      {showFilters && (
+        <div className="p-4 border-b flex justify-between items-center">
+          <div className="font-semibold">Tasks</div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline" 
+              size="sm" 
+              onClick={() => setStatusFilter("all")}
+              className={cn(
+                "text-sm",
+                statusFilter === "all" && "bg-secondary"
+              )}
+            >
+              All
+            </Button>
+            <Button
+              variant="outline" 
+              size="sm" 
+              onClick={() => setStatusFilter("not-started")}
+              className={cn(
+                "text-sm",
+                statusFilter === "not-started" && "bg-secondary"
+              )}
+            >
+              Not Started
+            </Button>
+            <Button
+              variant="outline" 
+              size="sm" 
+              onClick={() => setStatusFilter("in-progress")}
+              className={cn(
+                "text-sm",
+                statusFilter === "in-progress" && "bg-secondary"
+              )}
+            >
+              In Progress
+            </Button>
+            <Button
+              variant="outline" 
+              size="sm" 
+              onClick={() => setStatusFilter("completed")}
+              className={cn(
+                "text-sm",
+                statusFilter === "completed" && "bg-secondary"
+              )}
+            >
+              Completed
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
       <Table>
         <TableHeader>
           <TableRow>
@@ -144,9 +137,11 @@ const TasksList = () => {
               <TableCell>
                 <Badge 
                   variant="outline" 
-                  className={cn("font-normal border-l-4 pl-2", statusStyles[task.status as keyof typeof statusStyles])}
+                  className={cn("font-normal border-l-4 pl-2", statusStyles[task.status])}
                 >
-                  {task.status.replace("-", " ")}
+                  {task.status === "not-started" ? "Not Started" :
+                   task.status === "in-progress" ? "In Progress" :
+                   "Completed"}
                 </Badge>
               </TableCell>
               <TableCell>
@@ -162,7 +157,7 @@ const TasksList = () => {
                   <Calendar size={14} className="text-muted-foreground" />
                   <span 
                     className={cn(
-                      isOverdue(task.end_time) && task.status !== "done" && "text-destructive"
+                      isOverdue(task.end_time) && task.status !== "completed" && "text-destructive"
                     )}
                   >
                     {task.end_time ? formatDate(task.end_time) : "No due date"}

@@ -1,6 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
-export type TaskStatus = 'backlog' | 'in-progress' | 'validation' | 'done';
+export type TaskStatus = 'not-started' | 'in-progress' | 'completed';
 export type TaskPriority = 'urgent' | 'high' | 'normal' | 'low';
 
 export interface ITask extends Document {
@@ -31,8 +31,8 @@ const taskSchema = new Schema<ITask>(
     },
     status: {
       type: String,
-      enum: ['backlog', 'in-progress', 'validation', 'done'],
-      default: 'backlog'
+      enum: ['not-started', 'in-progress', 'completed'],
+      default: 'not-started'
     },
     priority: {
       type: String,
@@ -69,7 +69,15 @@ const taskSchema = new Schema<ITask>(
     }
   },
   {
-    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
+    timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' },
+    toJSON: {
+      transform: function(doc, ret) {
+        ret.id = ret._id.toString();
+        delete ret._id;
+        delete ret.__v;
+        return ret;
+      }
+    }
   }
 );
 

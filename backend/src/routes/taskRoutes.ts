@@ -1,6 +1,7 @@
 import express from 'express';
 import {
     createTask,
+    deleteAllTasks,
     deleteTask,
     getProgressChartData,
     getTask,
@@ -12,19 +13,11 @@ import {
 
 const router = express.Router();
 
-// Task statistics routes
-router.get('/stats', getTaskStats);
-router.get('/priority-stats', getTaskPriorityStats);
-router.get('/progress-chart', getProgressChartData);
-
-// Task routes
-router.route('/')
-  .get(getTasks)
-  .post(createTask);
-
-router.route('/:id')
-  .get(getTask)
-  .put(updateTask)
-  .delete(deleteTask);
+router.route('/clear').delete(deleteAllTasks);
+router.route('/stats').get(getTaskStats);
+router.route('/priority-stats').get(getTaskPriorityStats);
+router.route('/progress-chart').get(getProgressChartData);
+router.route('/').get(getTasks).post(createTask);
+router.route('/:id').get(getTask).put(updateTask).delete(deleteTask);
 
 export default router; 

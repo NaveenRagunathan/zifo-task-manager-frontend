@@ -34,6 +34,90 @@ export const getTasks = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+// @desc    Delete all tasks
+// @route   DELETE /api/tasks/clear
+// @access  Public
+export const deleteAllTasks = async (req: Request, res: Response): Promise<void> => {
+  try {
+    await Task.deleteMany({});
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'All tasks deleted successfully'
+    });
+  } catch (error: any) {
+    console.error('Error in deleteAllTasks:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'Error deleting all tasks'
+    });
+  }
+};
+
+// @desc    Get task statistics by status
+// @route   GET /api/tasks/stats
+// @access  Public
+export const getTaskStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const notStartedCount = await Task.countDocuments({ status: 'not-started' });
+    const inProgressCount = await Task.countDocuments({ status: 'in-progress' });
+    const completedCount = await Task.countDocuments({ status: 'completed' });
+    
+    const totalCount = notStartedCount + inProgressCount + completedCount;
+    
+    const stats = {
+      'not-started': notStartedCount,
+      'in-progress': inProgressCount,
+      'completed': completedCount,
+      total: totalCount
+    };
+    
+    res.status(200).json({
+      status: 'success',
+      data: stats
+    });
+  } catch (error: any) {
+    console.error('Error in getTaskStats:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'Error getting task statistics'
+    });
+  }
+};
+
+// @desc    Get task statistics by priority
+// @route   GET /api/tasks/priority-stats
+// @access  Public
+export const getTaskPriorityStats = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const urgentCount = await Task.countDocuments({ priority: 'urgent' });
+    const highCount = await Task.countDocuments({ priority: 'high' });
+    const normalCount = await Task.countDocuments({ priority: 'normal' });
+    const lowCount = await Task.countDocuments({ priority: 'low' });
+    
+    const totalCount = urgentCount + highCount + normalCount + lowCount;
+    
+    const stats = {
+      urgent: urgentCount,
+      high: highCount,
+      normal: normalCount,
+      low: lowCount,
+      total: totalCount
+    };
+    
+    res.status(200).json({
+      status: 'success',
+      data: stats
+    });
+  } catch (error: any) {
+    console.error('Error in getTaskPriorityStats:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error.message || 'Error getting task priority statistics'
+    });
+  }
+};
+
 // @desc    Get a single task
 // @route   GET /api/tasks/:id
 // @access  Public
@@ -75,12 +159,17 @@ export const createTask = async (req: Request, res: Response): Promise<void> => 
       ...req.body,
       user_id: req.body.user_id || '00000000-0000-0000-0000-000000000000',
       estimated_minutes: req.body.estimated_minutes || 30,
-      status: req.body.status || 'backlog',
+      status: req.body.status || 'not-started',
       priority: req.body.priority || 'normal'
     };
     
     // Create task
     const task = await Task.create(taskData);
+    
+    if (!task.id) {
+      console.error("Task ID is undefined", task);
+      // Handle the error appropriately, such as logging or throwing an error
+    }
     
     // Return the created task
     res.status(201).json({
@@ -156,69 +245,6 @@ export const deleteTask = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// @desc    Get task statistics by status
-// @route   GET /api/tasks/stats
-// @access  Public
-export const getTaskStats = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const backlogCount = await Task.countDocuments({ status: 'backlog' });
-    const inProgressCount = await Task.countDocuments({ status: 'in-progress' });
-    const validationCount = await Task.countDocuments({ status: 'validation' });
-    const doneCount = await Task.countDocuments({ status: 'done' });
-    
-    const totalCount = backlogCount + inProgressCount + validationCount + doneCount;
-    
-    const stats = {
-      backlog: backlogCount,
-      'in-progress': inProgressCount,
-      validation: validationCount,
-      done: doneCount,
-      total: totalCount
-    };
-    
-    res.status(200).json({
-      status: 'success',
-      data: stats
-    });
-  } catch (error: any) {
-    console.error('Error in getTaskStats:', error);
-    res.status(500).json({
-      status: 'error',
-      message: error.message || 'Error getting task statistics'
-    });
-  }
-};
-
-// @desc    Get task statistics by priority
-// @route   GET /api/tasks/priority-stats
-// @access  Public
-export const getTaskPriorityStats = async (req: Request, res: Response): Promise<void> => {
-  try {
-    const urgentCount = await Task.countDocuments({ priority: 'urgent' });
-    const highCount = await Task.countDocuments({ priority: 'high' });
-    const normalCount = await Task.countDocuments({ priority: 'normal' });
-    const lowCount = await Task.countDocuments({ priority: 'low' });
-    
-    const stats = {
-      urgent: urgentCount,
-      high: highCount,
-      normal: normalCount,
-      low: lowCount
-    };
-    
-    res.status(200).json({
-      status: 'success',
-      data: stats
-    });
-  } catch (error: any) {
-    console.error('Error in getTaskPriorityStats:', error);
-    res.status(500).json({
-      status: 'error',
-      message: error.message || 'Error getting priority statistics'
-    });
-  }
-};
-
 // @desc    Get progress chart data
 // @route   GET /api/tasks/progress-chart
 // @access  Public
@@ -228,19 +254,19 @@ export const getProgressChartData = async (req: Request, res: Response): Promise
     const weeks = 8;
     const weekData = [];
     
-    // Generate sample data
-    // In a real implementation, you would query the database for tasks completed each week
+    // Generate sample data for hours worked
+    // In a real implementation, you would query the database for actual hours worked each week
     for (let i = 0; i < weeks; i++) {
       const date = new Date();
       date.setDate(date.getDate() - (i * 7));
       const weekNumber = weeks - i;
       
-      // Random data between 15-30 tasks per week
-      const tasks = Math.floor(Math.random() * 15) + 15;
+      // Random hours between 30-45 hours per week
+      const hours = Math.floor(Math.random() * 15) + 30;
       
       weekData.push({
         name: `Week ${weekNumber}`,
-        tasks
+        hours
       });
     }
     

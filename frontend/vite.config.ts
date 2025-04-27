@@ -10,10 +10,9 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: process.env.VITE_API_URL || 'http://localhost:5000',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path
       }
     },
   },
@@ -22,6 +21,7 @@ export default defineConfig(({ mode }) => ({
     mode === 'development' &&
     componentTagger(),
   ].filter(Boolean),
+  base: '/relatedlab-insight-report/',
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

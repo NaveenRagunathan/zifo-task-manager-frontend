@@ -1,21 +1,29 @@
-
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { TaskForm } from "@/components/tasks/TaskForm";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { useTaskStats } from "@/hooks/useTaskStats";
 import { cn } from "@/lib/utils";
 import {
-  BarChart3,
-  CalendarDays,
-  CheckCircle,
-  ChevronDown,
-  HelpCircle,
-  Home,
-  Inbox,
-  Layers,
-  MessageSquare,
-  PlusCircle,
-  Settings,
-  Users,
+    BarChart3,
+    CalendarDays,
+    CheckCircle,
+    ChevronDown,
+    HelpCircle,
+    Home,
+    Inbox,
+    Layers,
+    PlusCircle,
+    Settings,
+    Users
 } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
 type SidebarItem = {
   title: string;
@@ -29,72 +37,72 @@ type SidebarItem = {
   }[];
 };
 
-const sidebarItems: SidebarItem[] = [
-  {
-    title: "Overview",
-    icon: <Home size={18} />,
-    href: "/",
-  },
-  {
-    title: "Calendar",
-    icon: <CalendarDays size={18} />,
-    href: "/calendar",
-  },
-  {
-    title: "Tasks",
-    icon: <CheckCircle size={18} />,
-    href: "/tasks",
-    children: [
-      { title: "Backlog", href: "/tasks/backlog", badge: 24 },
-      { title: "In progress", href: "/tasks/in-progress", badge: 4 },
-      { title: "Validation", href: "/tasks/validation", badge: 7 },
-      { title: "Done", href: "/tasks/done", badge: 13 },
-    ],
-  },
-  {
-    title: "Tools",
-    icon: <Layers size={18} />,
-    href: "/tools",
-    children: [
-      { title: "Notification", href: "/tools/notification", badge: 2 },
-      { title: "Inbox", href: "/tools/inbox" },
-      { title: "Integration", href: "/tools/integration" },
-      { title: "Reporting", href: "/tools/reporting" },
-    ],
-  },
-  {
-    title: "Metrics",
-    icon: <BarChart3 size={18} />,
-    href: "/metrics",
-    children: [
-      { title: "Active", href: "/metrics/active", badge: 16 },
-      { title: "Past", href: "/metrics/past" },
-    ],
-  },
-];
-
-const bottomItems: SidebarItem[] = [
-  {
-    title: "Help Center",
-    icon: <HelpCircle size={18} />,
-    href: "/help",
-  },
-  {
-    title: "Settings",
-    icon: <Settings size={18} />,
-    href: "/settings",
-  },
-  {
-    title: "Invite teams",
-    icon: <Users size={18} />,
-    href: "/invite",
-  },
-];
-
 const Sidebar = () => {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     Tasks: true, // Open by default
   });
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const { taskStats } = useTaskStats();
+
+  const sidebarItems: SidebarItem[] = [
+    {
+      title: "Overview",
+      icon: <Home size={18} />,
+      href: "/",
+    },
+    {
+      title: "Calendar",
+      icon: <CalendarDays size={18} />,
+      href: "/calendar",
+    },
+    {
+      title: "Tasks",
+      icon: <CheckCircle size={18} />,
+      href: "/tasks",
+      children: [
+        { title: "Not Started", href: "/tasks/not-started", badge: taskStats?.["not-started"] || 0 },
+        { title: "In Progress", href: "/tasks/in-progress", badge: taskStats?.["in-progress"] || 0 },
+        { title: "Completed", href: "/tasks/completed", badge: taskStats?.completed || 0 },
+      ],
+    },
+    {
+      title: "Tools",
+      icon: <Layers size={18} />,
+      href: "/tools",
+      children: [
+        { title: "Notification", href: "/tools/notification", badge: 2 },
+        { title: "Inbox", href: "/tools/inbox" },
+        { title: "Integration", href: "/tools/integration" },
+      ],
+    },
+    {
+      title: "Metrics",
+      icon: <BarChart3 size={18} />,
+      href: "/metrics",
+      children: [
+        { title: "Active", href: "/metrics/active", badge: 16 },
+        { title: "Past", href: "/metrics/past" },
+      ],
+    },
+  ];
+
+  const bottomItems: SidebarItem[] = [
+    {
+      title: "Help Center",
+      icon: <HelpCircle size={18} />,
+      href: "/help",
+    },
+    {
+      title: "Settings",
+      icon: <Settings size={18} />,
+      href: "/settings",
+    },
+    {
+      title: "Invite teams",
+      icon: <Users size={18} />,
+      href: "/invite",
+    },
+  ];
 
   const toggleSection = (title: string) => {
     setOpenSections(prev => ({
@@ -179,10 +187,20 @@ const Sidebar = () => {
       </div>
       
       <div className="px-3 mb-2">
-        <button className="w-full flex items-center justify-center gap-2 bg-primary text-white p-2 rounded-md text-sm font-medium">
-          <PlusCircle size={16} />
-          <span>Create task</span>
-        </button>
+        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="w-full flex items-center justify-center gap-2">
+              <PlusCircle size={16} />
+              <span>Create task</span>
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Task</DialogTitle>
+            </DialogHeader>
+            <TaskForm onSuccess={() => setIsCreateDialogOpen(false)} />
+          </DialogContent>
+        </Dialog>
       </div>
       
       <div className="px-3 py-2 flex-1 overflow-y-auto">

@@ -1,10 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 
-export interface TaskStats {
-  backlog: number;
-  'in-progress': number;
-  validation: number;
-  done: number;
+interface TaskStats {
+  "not-started": number;
+  "in-progress": number;
+  "completed": number;
   total: number;
 }
 
@@ -27,6 +26,7 @@ const fetchTaskStats = async (): Promise<TaskStats> => {
         const errorJson = JSON.parse(errorText);
         errorMessage = errorJson.message || errorMessage;
       } catch (e) {
+        // If parsing fails, use the text as is
         if (errorText) errorMessage = errorText;
       }
       throw new Error(errorMessage);
@@ -67,9 +67,14 @@ const fetchPriorityStats = async (): Promise<PriorityStats> => {
 
 export function useTaskStats() {
   const {
-    data: taskStats = { backlog: 0, "in-progress": 0, validation: 0, done: 0, total: 0 },
-    isLoading: isTaskStatsLoading,
-    error: taskStatsError,
+    data: taskStats = {
+      "not-started": 0,
+      "in-progress": 0,
+      "completed": 0,
+      total: 0
+    },
+    isLoading,
+    error,
   } = useQuery({
     queryKey: ["taskStats"],
     queryFn: fetchTaskStats,
@@ -87,7 +92,7 @@ export function useTaskStats() {
   return {
     taskStats,
     priorityStats,
-    isLoading: isTaskStatsLoading || isPriorityStatsLoading,
-    error: taskStatsError || priorityStatsError,
+    isLoading: isLoading || isPriorityStatsLoading,
+    error: error || priorityStatsError,
   };
 } 
