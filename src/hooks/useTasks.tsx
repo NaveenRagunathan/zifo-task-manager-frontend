@@ -2,10 +2,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Task } from "@/types/task";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+// Get the base API URL from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 // API Functions for task operations
 const fetchTasks = async (): Promise<Task[]> => {
   try {
-    const response = await fetch('/api/tasks');
+    // Prepend the base URL
+    const response = await fetch(`${API_BASE_URL}/api/tasks`);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -31,7 +35,8 @@ const fetchTasks = async (): Promise<Task[]> => {
 const createTaskApi = async (task: Omit<Task, "id" | "created_at">): Promise<Task> => {
   try {
     console.log("Creating task with data:", task);
-    const response = await fetch('/api/tasks', {
+    // Prepend the base URL
+    const response = await fetch(`${API_BASE_URL}/api/tasks`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -62,7 +67,8 @@ const createTaskApi = async (task: Omit<Task, "id" | "created_at">): Promise<Tas
 
 const updateTaskApi = async ({ id, ...task }: Partial<Task> & { id: string }): Promise<Task> => {
   try {
-    const response = await fetch(`/api/tasks/${id}`, {
+    // Prepend the base URL
+    const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -93,7 +99,8 @@ const updateTaskApi = async ({ id, ...task }: Partial<Task> & { id: string }): P
 
 const deleteTaskApi = async (id: string): Promise<void> => {
   try {
-    const response = await fetch(`/api/tasks/${id}`, {
+    // Prepend the base URL
+    const response = await fetch(`${API_BASE_URL}/api/tasks/${id}`, {
       method: 'DELETE',
     });
     

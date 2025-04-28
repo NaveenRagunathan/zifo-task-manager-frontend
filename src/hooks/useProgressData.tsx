@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
+// Get the base API URL from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 interface ProgressData {
   name: string;
   hours: number;
@@ -7,7 +10,8 @@ interface ProgressData {
 
 const fetchProgressChartData = async (): Promise<ProgressData[]> => {
   try {
-    const response = await fetch('/api/tasks/progress-chart');
+    // Prepend the base URL
+    const response = await fetch(`${API_BASE_URL}/api/tasks/progress-chart`);
     
     if (!response.ok) {
       const errorText = await response.text();

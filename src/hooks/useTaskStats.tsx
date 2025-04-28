@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 
+// Get the base API URL from environment variables
+const API_BASE_URL = import.meta.env.VITE_API_URL || '';
+
 interface TaskStats {
   "not-started": number;
   "in-progress": number;
@@ -17,7 +20,8 @@ export interface PriorityStats {
 // Fetch task statistics by status
 const fetchTaskStats = async (): Promise<TaskStats> => {
   try {
-    const response = await fetch('/api/tasks/stats');
+    // Prepend the base URL
+    const response = await fetch(`${API_BASE_URL}/api/tasks/stats`);
     
     if (!response.ok) {
       const errorText = await response.text();
@@ -43,7 +47,8 @@ const fetchTaskStats = async (): Promise<TaskStats> => {
 // Fetch task statistics by priority
 const fetchPriorityStats = async (): Promise<PriorityStats> => {
   try {
-    const response = await fetch('/api/tasks/priority-stats');
+    // Prepend the base URL
+    const response = await fetch(`${API_BASE_URL}/api/tasks/priority-stats`);
     
     if (!response.ok) {
       const errorText = await response.text();
